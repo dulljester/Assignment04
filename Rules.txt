@@ -1,0 +1,15 @@
+if tumor-siz == 35-39, 
+    then irradiat is no
+else if tumor-siz == 10-14, 
+    then irradiat is no
+else if tumor-siz == 50-54, 
+    then irradiat is yes
+else if tumor-siz == 25-29, 
+    then irradiat is no
+else if tumor-siz == 15-19, 
+    then irradiat is no
+else if tumor-siz == 20-24, 
+    then irradiat is yes
+else if tumor-siz == 30-34, 
+    then irradiat is no
+

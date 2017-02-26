@@ -61,4 +61,12 @@ public class MyUtils {
     public static int randint(int i, int j) {
         return ThreadLocalRandom.current().nextInt(i,j+1);
     }
+
+    public static boolean oneBitSet(long signature) {
+        return (signature&(signature-1)) == 0;
+    }
+
+    public static double rndm() {
+        return ThreadLocalRandom.current().nextDouble(1.00);
+    }
 }

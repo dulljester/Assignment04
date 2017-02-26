@@ -21,7 +21,7 @@ public class DecisionTree implements Classifier {
     public void trainOnData( final Long[] trainingData, final int len ) {
         this.trainingData = trainingData;
         nodeCount = 0;
-        root = new Node(MyUtils.MASK(dataHolder.getN()),0,len-1);
+        root = new Node(MyUtils.MASK(dataHolder.getN())&~MyUtils.BIT(dataHolder.getTargVariable()),0,len-1);
     }
 
     @Override
@@ -31,7 +31,11 @@ public class DecisionTree implements Classifier {
 
     private int getPrediction( Node x, Long t ) {
        assert x != null;
-       if ( x.isTerminalState ) return x.value;
+       if ( x.isTerminalState ) {
+           if ( x.frac == null )
+            return x.value;
+           return MyUtils.rndm()<=x.frac.doubleValue()?0:1;
+       }
        assert x.splittingVarIdx != -1;
        long kk = dataHolder.readAttribute(t,x.splittingVarIdx);
        if ( !x.child.containsKey(kk) ) return MyUtils.randint(0,1);
@@ -44,6 +48,7 @@ public class DecisionTree implements Classifier {
         final int left, right;
         int splittingVarIdx = -1, value;
         Map<Long,Node> child = null;
+        Double frac = null;
 
         void printMyself( StringBuilder sb, int offset ) {
             if ( isTerminalState ) {
@@ -67,11 +72,15 @@ public class DecisionTree implements Classifier {
             this.right = right;
             assert left <= right;
             ++nodeCount;
-            if ( isHomogeneous() ) {
+            if ( isHomogeneous(frac) ) {
                 isTerminalState = true ;
                 value = dataHolder.getOutcome(trainingData[left]);
             }
             else {
+                if ( MyUtils.oneBitSet(signature) ) { // if data is not homogeneous and
+                    this.isTerminalState = true ;     // only one attribute varies, i.e. this variable is not
+                    return ;                          // able to distinguish between the classes: set class 0 with probability equalling the fraction of 0-cases
+                }
                 final int idx = determineSplittingVarIdx();
                 assert (signature & MyUtils.BIT(idx)) != 0: signature+" "+idx;
                 Arrays.sort(trainingData, left, right + 1, new Comparator<Long>() {
@@ -92,7 +101,8 @@ public class DecisionTree implements Classifier {
             }
         }
 
-        private boolean isHomogeneous() {
+        private boolean isHomogeneous(Double frac) {
+            assert left <= right;
             Arrays.sort(trainingData, left, right + 1, new Comparator<Long>() {
                 @Override
                 public int compare(Long o1, Long o2) {
@@ -105,7 +115,14 @@ public class DecisionTree implements Classifier {
             for ( int i = left; i <= right && (!zPresent || !oPresent); ++i )
                 if ( dataHolder.getOutcome(trainingData[i]) == 0 ) zPresent = true ;
                 else oPresent = true ;
-            return (zPresent^oPresent);
+            if ( zPresent^oPresent ) return true ;
+            if ( !MyUtils.oneBitSet(signature) ) return false ;
+            int z = 0, o = 0;
+            for ( int i = left; i <= right; ++i )
+                if ( dataHolder.getOutcome(trainingData[i]) == 0 ) ++z;
+                else ++o;
+            frac = Double.valueOf((z+0.00)/(z+o));
+            return false ;
         }
 
         private int determineSplittingVarIdx() {
@@ -113,7 +130,7 @@ public class DecisionTree implements Classifier {
             double minEA = +oo;
             for ( long u = signature; u > 0; u &= ~MyUtils.LSB(u) ) {
                final int idx = MyUtils.who(MyUtils.LSB(u));
-               if ( idx == dataHolder.getTargVariable() ) continue ;
+               assert ( idx != dataHolder.getTargVariable() ) ;
                assert (signature & MyUtils.BIT(idx)) != 0;
                Arrays.sort(trainingData, left, right + 1, new Comparator<Long>() {
                    @Override
@@ -131,7 +148,7 @@ public class DecisionTree implements Classifier {
                for ( int j,i = left; i <= right; i = j ) {
                    long kk = dataHolder.readAttribute(trainingData[i],idx);
                    int zeros = 0, ones;
-                   for ( j = i+1; j <= right && dataHolder.readAttribute(trainingData[j],idx) == kk; ++j )
+                   for ( j = i; j <= right && dataHolder.readAttribute(trainingData[j],idx) == kk; ++j )
                        if ( dataHolder.getOutcome(trainingData[j]) == 0 )
                            ++zeros;
                    ones = (j-i)-zeros;

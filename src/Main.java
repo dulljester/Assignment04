@@ -5,9 +5,11 @@ import static java.lang.System.*;
 
 public class Main {
     private static BufferedReader br;
+    private static BufferedWriter bw;
     private static Scanner inp;
     static Classifier c;
     private static DataHolder dataHolder;
+    private static File infile = null, outfile = null;
 
     enum Outcomes {
         TP(0,0), FP(0,1), FN(1,0), TN(1,1);
@@ -25,7 +27,6 @@ public class Main {
     }
 
     public static void main(String... args) throws Exception {
-        File infile = null, outfile = null;
         String filename = null;
 
         inp = new Scanner(System.in);
@@ -41,7 +42,7 @@ public class Main {
         } while ( infile == null );
         out.printf(MyUtils.ANSI_GREEN+"[done]"+MyUtils.ANSI_RESET+" reading from %s\n\n",infile.toString());
 
-        BufferedWriter bw = new BufferedWriter(new PrintWriter(outfile = new File("./Rules.txt")));
+        bw = new BufferedWriter(new PrintWriter(outfile = new File("./Rules.txt")));
         double perc = 0.30;
         System.setIn(new FileInputStream(new File(filename)));
         go(perc);
@@ -68,6 +69,8 @@ public class Main {
             out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+binaryAttributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
             trainTheClassifier(percent);
             classify(percent);
+            out.printf("The result is in the file "+MyUtils.ANSI_YELLOW_BACKGROUND+MyUtils.ANSI_BLUE+outfile.toPath().normalize().toAbsolutePath().toString()+MyUtils.ANSI_RESET+"\n");
+            out.println(MyUtils.ANSI_GREEN+"*** Algorithm Finished ***"+ MyUtils.ANSI_RESET);
         } else {
             throw new RuntimeException("DataHolder could not set target variable");
         }
@@ -111,8 +114,15 @@ public class Main {
             Outcomes o = Outcomes.which(v[0][i],v[1][i]);
             cnt.put(o,cnt.get(o)+1);
         }
+        try {
+            bw.write(c.toString()+"\n");
+            bw.flush();
+        } catch ( IOException io ) {
+            out.println("[classify()]: "+io.getMessage());
+            io.printStackTrace();
+            throw new RuntimeException(io);
+        }
         out.printf("%% of data used in training = %.2f, Accuracy %.2f\n",perc*100,(cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/n);
-        out.printf("%s\n",c.toString());
     }
 }
 
