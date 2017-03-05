@@ -1,15 +1,51 @@
-if tumor-siz == 35-39, 
-    then irradiat is no
-else if tumor-siz == 10-14, 
-    then irradiat is no
-else if tumor-siz == 50-54, 
-    then irradiat is yes
-else if tumor-siz == 25-29, 
-    then irradiat is no
-else if tumor-siz == 15-19, 
-    then irradiat is no
-else if tumor-siz == 20-24, 
-    then irradiat is yes
-else if tumor-siz == 30-34, 
-    then irradiat is no
+if occupation == Adm-clerical, 
+    then wage is <=50K
+else if occupation == Machine-op-inspct, 
+    then wage is <=50K
+else if occupation == Handlers-cleaners, 
+    then wage is <=50K
+else if occupation == Craft-repair, 
+    then wage is <=50K
+else if occupation == Farming-fishing, 
+    then wage is <=50K
+else if occupation == Exec-managerial, 
+    if workclass == Private, 
+        if education == Masters, 
+            if age == >=30, 
+                if education-num == >=14, 
+                    then wage is >50K(Pr = 50.00%)
+        else if education == Some-college, 
+            then wage is <=50K
+    else if workclass == Self-emp-inc, 
+        then wage is >50K
+    else if workclass == State-gov, 
+        then wage is >50K
+else if occupation == Protective-serv, 
+    if age == <30, 
+        then wage is <=50K
+    else if age == >=30, 
+        then wage is >50K
+else if occupation == Sales, 
+    if age == <30, 
+        then wage is <=50K
+    else if age == >=30, 
+        if workclass == Self-emp-not-inc, 
+            then wage is <=50K
+        else if workclass == Private, 
+            then wage is >50K
+else if occupation == Prof-specialty, 
+    if education == Assoc-voc, 
+        then wage is <=50K
+    else if education == Masters, 
+        if age == <30, 
+            then wage is <=50K
+        else if age == >=30, 
+            then wage is >50K
+    else if education == Some-college, 
+        if workclass == Federal-gov, 
+            then wage is >50K
+        else if workclass == Private, 
+            then wage is <=50K
+else if occupation == Other-service, 
+    then wage is <=50K
 

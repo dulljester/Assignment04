@@ -21,7 +21,7 @@ public class DecisionTree implements Classifier {
     public void trainOnData( final Long[] trainingData, final int len ) {
         this.trainingData = trainingData;
         nodeCount = 0;
-        root = new Node(MyUtils.MASK(dataHolder.getN())&~MyUtils.BIT(dataHolder.getTargVariable()),0,len-1);
+        root = new Node(MyUtils.MASK(dataHolder.getN())&~MyUtils.BIT(dataHolder.getTargVariable()),0,len-1,null);
     }
 
     @Override
@@ -46,6 +46,7 @@ public class DecisionTree implements Classifier {
         boolean isTerminalState = false;
         final long signature;
         final int left, right;
+        final Node p;
         int splittingVarIdx = -1, value;
         Map<Long,Node> child = null;
         Double frac = null;
@@ -53,7 +54,10 @@ public class DecisionTree implements Classifier {
         void printMyself( StringBuilder sb, int offset ) {
             if ( isTerminalState ) {
                 for ( int k = offset; k-->0; sb.append(" ") );
-                sb.append(String.format("%s\n","then "+dataHolder.getTargVarName()+" is "+dataHolder.getTargClass(value+1)));
+                sb.append(String.format("%s","then "+dataHolder.getTargVarName()+" is "+dataHolder.getTargClass(value+1)));
+                if ( frac != null && Math.abs(frac-0.00) >= MyUtils.tol && Math.abs(frac-1.00) >= MyUtils.tol ) // if frac != 0 && frac != 1.00, i.e. the node is terminal but mixed
+                    sb.append(String.format("(Pr = %.2f%%)\n",frac*100));       // append the probability information as well
+                else sb.append("\n");
                 return ;
             }
             int i = 0;
@@ -66,21 +70,36 @@ public class DecisionTree implements Classifier {
             }
         }
 
-        Node( Long signature, int left, int right ) {
+        Node( Long signature, int left, int right, Node p ) {
             this.signature = signature;
             this.left = left;
             this.right = right;
+            this.p = p;
             assert left <= right;
             ++nodeCount;
-            if ( isHomogeneous(frac) ) {
+            if ( isHomogeneous(this) ) {
                 isTerminalState = true ;
                 value = dataHolder.getOutcome(trainingData[left]);
             }
             else {
+                assert frac != null ;
                 if ( MyUtils.oneBitSet(signature) ) { // if data is not homogeneous and
                     this.isTerminalState = true ;     // only one attribute varies, i.e. this variable is not
-                    return ;                          // able to distinguish between the classes: set class 0 with probability equalling the fraction of 0-cases
+                                                      // able to distinguish between the classes:
+                    if ( Math.abs(frac-0.5) >= MyUtils.tol ) { // if there is a clear winner...
+                        value = frac>0.5?0:1;
+                        return ;
+                    }
+                    if ( p == null || p.frac == null ) {
+                        frac = 0.5;
+                        value = 0;
+                    }
+                    else value = (frac=p.frac)>0.5?0:1;
+                    return ;
                 }
+                /*
+                 * doSplit() functionality
+                 */
                 final int idx = determineSplittingVarIdx();
                 assert (signature & MyUtils.BIT(idx)) != 0: signature+" "+idx;
                 Arrays.sort(trainingData, left, right + 1, new Comparator<Long>() {
@@ -95,13 +114,13 @@ public class DecisionTree implements Classifier {
                 for ( int j,i = left; i <= right; i = j ) {
                     long kk = dataHolder.readAttribute(trainingData[i],idx);
                     for ( j = i; j <= right && dataHolder.readAttribute(trainingData[j],idx) == kk; ++j );
-                    child.put(kk,new Node(signature&~MyUtils.BIT(idx),i,j-1));
+                    child.put(kk,new Node(signature&~MyUtils.BIT(idx),i,j-1,this));
                 }
                 splittingVarIdx = idx;
             }
         }
 
-        private boolean isHomogeneous(Double frac) {
+        private boolean isHomogeneous( Node x ) {
             assert left <= right;
             Arrays.sort(trainingData, left, right + 1, new Comparator<Long>() {
                 @Override
@@ -116,12 +135,12 @@ public class DecisionTree implements Classifier {
                 if ( dataHolder.getOutcome(trainingData[i]) == 0 ) zPresent = true ;
                 else oPresent = true ;
             if ( zPresent^oPresent ) return true ;
-            if ( !MyUtils.oneBitSet(signature) ) return false ;
+            // if ( !MyUtils.oneBitSet(signature) ) return false ;
             int z = 0, o = 0;
             for ( int i = left; i <= right; ++i )
                 if ( dataHolder.getOutcome(trainingData[i]) == 0 ) ++z;
                 else ++o;
-            frac = Double.valueOf((z+0.00)/(z+o));
+            x.frac = Double.valueOf((z+0.00)/(z+o));
             return false ;
         }
 
@@ -144,6 +163,9 @@ public class DecisionTree implements Classifier {
                        return x1<x2?-1:1;
                    }
                });
+               /*
+                * getInformationGain() functionality
+                */
                double EA = 0;
                for ( int j,i = left; i <= right; i = j ) {
                    long kk = dataHolder.readAttribute(trainingData[i],idx);

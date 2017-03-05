@@ -142,6 +142,22 @@ public class DataHolder {
         assert res != 0;
         return res;
     }
+    private Long mapRowToLong( String ... lst ) {
+        long res = 0;
+        assert lst.length == getN();
+        lst = lst;
+        for ( int i = 0; i < lst.length; ++i )
+            res |= ((long)(m.get(i).get(lst[i])) << offset[i]);
+        assert res != 0;
+        return res;
+    }
+
+    /*
+     * the assumption is that the order of the columns is the same as in the training data set
+     */
+    public Long mapRowToLong( String s ) {
+        return mapRowToLong(s.replaceFirst("^\\s+","").split("\\s+"));
+    }
 
     private void mapDataToLong() {
         N = getN();
@@ -179,12 +195,15 @@ public class DataHolder {
         String s = br.readLine(),t;
         Scanner scan = new Scanner(s);
         int i,j,k,n = 0;
-        for ( ;scan.hasNext(); im.put(n,new HashMap<>()), m.put(n,new HashMap<>()), nameOfAttribute.put(n++,scan.next()) ) ;
+        /*
+         * converting original column names to lowercase: needed for bonus part training data/input data compatibility
+         */
+        for ( ;scan.hasNext(); im.put(n,new HashMap<>()), m.put(n,new HashMap<>()), nameOfAttribute.put(n++,scan.next().toLowerCase()) ) ;
         for ( i = 0; (s = br.readLine()) != null; ++i ) {
             if ( MyUtils.isEmptyLine(s) ) { i--; continue ; }
             database.put(i,new ArrayList<>());
             for ( scan = new Scanner(s), j = 0; scan.hasNext(); ++j ) {
-                t = scan.next();
+                t = scan.next().toLowerCase();
                 database.get(i).add(t);
                 if ( !m.get(j).containsKey(t) ) {
                     k = m.get(j).size()+1;

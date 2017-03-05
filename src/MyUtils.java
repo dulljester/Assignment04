@@ -23,7 +23,11 @@ public class MyUtils {
     public static final String ANSI_CYAN_BACKGROUND = "\u001B[46m";
     public static final String ANSI_WHITE_BACKGROUND = "\u001B[47m";
     public static final String ASCII_BOLD = "\033[0;1m";
+    public static double tol = 1e-9;
 
+    /*
+     * calculates entropy
+     */
     public static double I( int zeros, int ones ) {
         if ( zeros == 0 || ones == 0 )
             return 0.00;
