@@ -8,7 +8,8 @@ CLASSES = \
         MyUtils.java \
         DataHolder.java \
         DecisionTree.java \
-        Main.java
+        Main.java \
+        Bonus.java
 
 default: classes
 

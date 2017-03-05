@@ -1,27 +1,22 @@
 This is an implementation of ID3 algorithm, following the original paper http://dl.acm.org/citation.cfm?id=637969
-GitHub page: https://github.com/dulljester/Assignment04
-
-FIXME:
-    data2: accuracy 50%
+GitHub page of the project: https://github.com/dulljester/Assignment04
 
 --Compile & run
 
     compile: make
-    run: java Main
+    run: java Main (or java Bonus)
         NOTE: for simplicity, you can put the dataset inside the directory with the sources (this way you don't have to provide full path)
-
 
         ***** BREAKDOWN BY EVALUATION CRITERIA *****
 
-
 --Introduction to the code structure / architecture
 
-        * loadDB(): DataHolder class, private void loadDB( BufferedReader br ) throws Exception ;
-        * buildFirstItemset(): AprioriTid class, private void buildFirstItemset() ;
-        * pruneItemset(): AprioriTid class, public Map<Integer,Set<Long>> findAllLargeItemsets() ;
-        * generateCandidates(): AprioriTid class, public Map<Integer,Set<Long>> findAllLargeItemsets() ;
-        * createRules(): inside Main class, public static void main( String ... args ) ;
-        * outputRules(): inside Main class, public static void main( String ... args ) ;
+        * readdata(): DataHolder class, private void readData( BufferedReader br ) throws Exception ;
+        * getattrib(): Main/Bonus class, interaction with the user, I/O, determining the target attribute, etc.
+        * maketree(): DecisionTree class implementing Classifier interface, the Node inner class constructor takes care of "maketree" functionality
+        * getInformationGain(): determineSplittingVarIdx() method in DecisionTree class
+        * doSplit(): determineSplittingVarIdx() and Node's constructor
+        * printtree(): DecisionTree class has an overridden toString() method that calls a recursive "printMyself()" method of the Node class
 
 --Specify limitations of the program( if any)
 
@@ -57,46 +52,35 @@ FIXME:
 
 --Other instructions / comments to the user
 
-        Some "embarrassingly-parallel" tasks have been realized using Java threads -- via implementing the Callable interface as in the case of
-        Joiner class (used for generating candidate itemsets from L_{k-1} x L_{k-1} join),
-        or extending Java SE7's RecursiveTask as in the case of RulesMiner class.
-        The datasets being small, this step may not look necessary, but it points to parallelization opportunities, so I though I might just as well add it.
-        If Joiner class is made to extend Thread/implement Runnable, managing memory with low-level start/join calls is harder: with support = 0.1
-        and confidence = 0.1 values as many as ~9200 rules are generated for sample data3, and on bluenose the program may run out of threads.
-        That is why Java SE7's ExecutorService API is used for managing threads.
-        To confine ourselves to meaningful rules only, we require support >= 0.05 and confidence >= 0.05 rather than 0.00
-
---Brief Description about bonus part
-
-        I follow the original paper "Fast Algorithms for Mining Association Rules in Large Databases" by Rakesh Agrawal and Ramakrishnan Srikant
-        They suggest that we can dispense with DB for support counting in subsequent iterations if we maintain a collection of frequent (k-1)-itemsets
-        that reside within a certain transaction; the algorithm is called AprioriTid (hence my Java class). This is because not all transactions may
-        carry large itemsets; we should keep only those that do; even this list will be further refined as the transactions with no k-large itemsets
-        are dropped at subsequent iterations
-        Inside AprioriTid class, there is a private class CandidateItemsetsTID -- essentially a list of frequent $k-1$-itemsets tagged by an ID --
-        which is the transaction itself, because of our encoding (see above). All in all, the idea is implemented in
-                AprioriTid :: public Map<Integer,Set<Long>> findAllLargeItemsets() ;
-
+        During the recursive process, when we run out of attributes but the classes are still mixed, we give the class label with "probability",
+        which is essentially the fraction of 0-labels. If it is 50/50, we look at the parent node.
 
 --Code Design
+
+    --General Flow of the Algorithm:
+        The Node instance is given a certain bitmask we'll call "signature", where set bits denote the attributes we can perform a split.
+        The Node also has a "left" and "right" indices of a portion of training data that has been assigned to it (this way, we address a "globally"
+        allocated training data and don't have to copy the data for each node)
+        For each possible splitting variable, we sort the left-to-right portion of the data with respect to that attribute
+        (here just-in-time anonymous classes of Java come in handy), which breaks the left-to-right portion into segments
+        ready to be passed to the current node's children (if we decide to split on this attribute, that is).
 
     --Modularity/Functionality:
 
         * MyUtils: utility collection of general-purpose operations and constants
-        * DataHolder: interpets the long as a transaction, encodes a transaction as a long, provides access to transaction's fields, loads DB, etc.
+        * DataHolder: interprets the long as a transaction, encodes a transaction as a long, provides access to transaction's fields, loads DB, etc.
 
-        [reusability] I will use the above two classes for Assignments 4 & 5, too, as long as the dataset format remain the same.
+        [reusability] I have used the above classes for Assignment 3; and plan to do so for Assignments 5, too, as long as the dataset format remains the same.
 
-        * AprioriTid: implementation of AprioriTid algorithm, yields the list of all the large itemsets (i.e. L_k for all k >= 2)
-        * AssociationRule: wrapper around association rule with overridden toString() method for pretty-printing
-        * RulesMiner: produces the actual association rules given the list of all large itemsets (L_k for all k >= 2, that is)
-        * Joiner: extends Thread for multithreading during Joins (needed for L_{k-1} x L_{k-1} join)
+        * Classifier: an interface with two methods -- trainOnData() and getPrediction();
+          With this "coding-for-interface" pattern, for Assignment 5, all we have to do is to implement a NaiveBayes class
+          that implements Classifier; all the other classes access the DecisionTree via the Classifier interface;
+          the whole system is loosely coupled to the DecisionTree class. All we do is just plug-in another implementation
+          of the Classifier interface.
+        * DecisionTree implements Classifier: essentially, its private inner class Node does all the non-trivial work
         * Main: driver; interacts with the user, I/O set-up, etc.
+        * Bonus: derives a decision tree from training data and classifies another dataset, reports accuracy and class labels
 
     --Code readability and comments
 
         All the methods bear self-explanatory names and are supplied with asserts to check for pre/post conditions
-
-
-
-
