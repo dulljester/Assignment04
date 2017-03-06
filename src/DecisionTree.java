@@ -32,13 +32,14 @@ public class DecisionTree implements Classifier {
     private int getPrediction( Node x, Long t ) {
        assert x != null;
        if ( x.isTerminalState ) {
-           if ( x.frac == null )
+           if ( x.frac == null ) // that means the node is homogeneous
             return x.value;
-           return MyUtils.rndm()<=x.frac.doubleValue()?0:1;
+           return x.frac.doubleValue()>=0.5?0:1;
        }
        assert x.splittingVarIdx != -1;
        long kk = dataHolder.readAttribute(t,x.splittingVarIdx);
-       if ( !x.child.containsKey(kk) ) return MyUtils.randint(0,1);
+       if ( !x.child.containsKey(kk) )
+           return x.frac.doubleValue()>=0.5?0:1; // if there is no branch for a particular value, return majority class
        return getPrediction(x.child.get(dataHolder.readAttribute(t,x.splittingVarIdx)),t);
     }
 
@@ -61,6 +62,7 @@ public class DecisionTree implements Classifier {
                 return ;
             }
             int i = 0;
+            assert splittingVarIdx >= 0;
             String colname = dataHolder.getNameOfAttribute(splittingVarIdx);
             for ( Map.Entry<Long,Node> entry: child.entrySet() ) {
                 String nm = dataHolder.getFieldValueName(entry.getKey(),splittingVarIdx);
@@ -83,11 +85,10 @@ public class DecisionTree implements Classifier {
             }
             else {
                 assert frac != null ;
-                if ( MyUtils.oneBitSet(signature) ) { // if data is not homogeneous and
-                    this.isTerminalState = true ;     // only one attribute varies, i.e. this variable is not
-                                                      // able to distinguish between the classes:
+                if ( 0 == signature ) { // if data is not homogeneous and
+                    this.isTerminalState = true ;     // we've run out of attributes
                     if ( Math.abs(frac-0.5) >= MyUtils.tol ) { // if there is a clear winner...
-                        value = frac>0.5?0:1;
+                        value = frac>0.5?0:1; //frac gives the fraction of 0-labels
                         return ;
                     }
                     if ( p == null || p.frac == null ) {
@@ -117,6 +118,7 @@ public class DecisionTree implements Classifier {
                     child.put(kk,new Node(signature&~MyUtils.BIT(idx),i,j-1,this));
                 }
                 splittingVarIdx = idx;
+                assert splittingVarIdx >= 0;
             }
         }
 
@@ -131,11 +133,10 @@ public class DecisionTree implements Classifier {
                 }
             });
             boolean zPresent = false, oPresent = false ;
-            for ( int i = left; i <= right && (!zPresent || !oPresent); ++i )
+            for ( int i = left; i <= right && !(zPresent && oPresent); ++i )
                 if ( dataHolder.getOutcome(trainingData[i]) == 0 ) zPresent = true ;
                 else oPresent = true ;
             if ( zPresent^oPresent ) return true ;
-            // if ( !MyUtils.oneBitSet(signature) ) return false ;
             int z = 0, o = 0;
             for ( int i = left; i <= right; ++i )
                 if ( dataHolder.getOutcome(trainingData[i]) == 0 ) ++z;
@@ -167,14 +168,16 @@ public class DecisionTree implements Classifier {
                 * getInformationGain() functionality
                 */
                double EA = 0;
-               for ( int j,i = left; i <= right; i = j ) {
+               int differentValues = 0;
+               for ( int j,i = left; i <= right; i = j, ++differentValues ) {
                    long kk = dataHolder.readAttribute(trainingData[i],idx);
                    int zeros = 0, ones;
                    for ( j = i; j <= right && dataHolder.readAttribute(trainingData[j],idx) == kk; ++j )
                        if ( dataHolder.getOutcome(trainingData[j]) == 0 )
                            ++zeros;
                    ones = (j-i)-zeros;
-                   if ( (EA += (zeros+ones+0.00)/(right-left+1)*MyUtils.I(zeros,ones)) >= minEA ) {
+                   int segmentSize = ones+zeros;
+                   if ( (EA += (segmentSize+0.00)/(right-left+1)*MyUtils.I(zeros,ones)) >= minEA ) {
                        EA = +oo;
                        break ;
                    }

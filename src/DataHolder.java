@@ -190,20 +190,37 @@ public class DataHolder {
         }
     }
 
+    private void removeNoise( Map<Integer,Map<String,Integer>> counts ) {
+        for ( int j = 0; j < getN(); ++j ) {
+            String majorityElement = MyUtils.getMajorityElement(counts.get(j));
+            for ( int i = 0; i < database.size(); ++i )
+                if ( database.get(i).get(j).equals("?") )
+                    database.get(i).set(j,majorityElement);
+        }
+    }
+
     private void readData( BufferedReader br ) throws Exception {
         assert br != null ;
         String s = br.readLine(),t;
         Scanner scan = new Scanner(s);
         int i,j,k,n = 0;
+        Map<Integer,Map<String,Integer>> counts = new HashMap<>();
         /*
          * converting original column names to lowercase: needed for bonus part training data/input data compatibility
          */
         for ( ;scan.hasNext(); im.put(n,new HashMap<>()), m.put(n,new HashMap<>()), nameOfAttribute.put(n++,scan.next().toLowerCase()) ) ;
+        for ( i = 0; i < n; ++i )
+            counts.put(i,new HashMap<>());
         for ( i = 0; (s = br.readLine()) != null; ++i ) {
             if ( MyUtils.isEmptyLine(s) ) { i--; continue ; }
             database.put(i,new ArrayList<>());
             for ( scan = new Scanner(s), j = 0; scan.hasNext(); ++j ) {
                 t = scan.next().toLowerCase();
+                if ( !t.equals("?") ) {
+                    if ( counts.get(j).containsKey(t) )
+                        counts.get(j).put(t,counts.get(j).get(t)+1);
+                    else counts.get(j).put(t,1);
+                }
                 database.get(i).add(t);
                 if ( !m.get(j).containsKey(t) ) {
                     k = m.get(j).size()+1;
@@ -212,6 +229,7 @@ public class DataHolder {
                 }
             }
         }
+        removeNoise(counts);
     }
 
     public void addAll( Map<Long, Integer> cn ) {

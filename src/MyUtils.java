@@ -1,9 +1,11 @@
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.lang.Math.*;
 
 public class MyUtils {
 
+    private final static double _log2 = log(2.00);
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
     public static final String ANSI_RED = "\u001B[31m";
@@ -31,8 +33,8 @@ public class MyUtils {
     public static double I( int zeros, int ones ) {
         if ( zeros == 0 || ones == 0 )
             return 0.00;
-        double x = (zeros+0.00)/(zeros+ones), y = (ones+0.0)/(zeros+ones);
-        return -x*log(x)-y*log(y);
+        double x = (zeros+0.00)/(zeros+ones), y = (ones+0.00)/(zeros+ones);
+        return (-x*log(x)-y*log(y))/_log2;
     }
     public static long LSB( long u ) { return u&((~u)+1); }
     public static boolean isEmptyLine( String s ) {
@@ -72,5 +74,16 @@ public class MyUtils {
 
     public static double rndm() {
         return ThreadLocalRandom.current().nextDouble(1.00);
+    }
+
+    public static String getMajorityElement(Map<String, Integer> stringIntegerMap ) {
+        int maxcount = -1;
+        String res = null;
+        for ( Map.Entry<String,Integer> entry: stringIntegerMap.entrySet() )
+            if ( entry.getValue() > maxcount ) {
+                maxcount = entry.getValue();
+                res = entry.getKey();
+            }
+        return res ;
     }
 }

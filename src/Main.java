@@ -43,7 +43,7 @@ public class Main {
         out.printf(MyUtils.ANSI_GREEN+"[done]"+MyUtils.ANSI_RESET+" reading from %s\n\n",infile.toString());
 
         bw = new BufferedWriter(new PrintWriter(outfile = new File("./Rules.txt")));
-        double perc = 0.30;
+        double perc = 0.99999999;
         System.setIn(new FileInputStream(new File(filename)));
         go(perc);
     }
@@ -81,10 +81,12 @@ public class Main {
         final Set<Long> inc = new HashSet<>();
         if ( percent <= 0 || percent >= 1 )
             throw new IllegalArgumentException("percentage has to be in [0,1]");
-        int n = (int)(dataHolder.numUniqTuples()*percent);
+        //int n = (int)(dataHolder.numUniqTuples()*percent);
+        int n = dataHolder.numUniqTuples();
         Long []t = dataHolder.getUniqTuples(n), trainingData;
         c = new DecisionTree();
-        k = n/3;
+        //k = n/3;
+        k = n;
         do {
             for ( c.trainOnData(t,k), inc.clear(), i = k; i < n; ++i )
                 if ( c.getPrediction(t[i]) != dataHolder.getOutcome(t[i]) )
@@ -122,7 +124,7 @@ public class Main {
             io.printStackTrace();
             throw new RuntimeException(io);
         }
-        out.printf("%% of data used in training = %.2f, Accuracy %.2f\n",perc*100,(cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/n);
+        //out.printf("%% of data used in training = %.2f, Accuracy %.2f\n",perc*100,(cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/n);
     }
 }
 
