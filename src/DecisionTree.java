@@ -29,6 +29,8 @@ public class DecisionTree implements Classifier {
         return getPrediction(root,t);
     }
 
+    // overloaded, internal getPrediction that, given a transaction "t" and a node "x" in the decision tree,
+    // returns a class that would result in descending the tree starting at "x" with transaction "t"
     private int getPrediction( Node x, Long t ) {
        assert x != null;
        if ( x.isTerminalState ) {
@@ -52,13 +54,16 @@ public class DecisionTree implements Classifier {
         Map<Long,Node> child = null;
         Double frac = null;
 
+        //recursively print the node and the subtree rooted at it to a StringBuilder
+        // "usefulness measure" of the rule: each terminal node shows the percentage
+        // of the training data that falls into this rule
         void printMyself( StringBuilder sb, int offset ) {
             if ( isTerminalState ) {
                 for ( int k = offset; k-->0; sb.append(" ") );
                 sb.append(String.format("%s","then "+dataHolder.getTargVarName()+" is "+dataHolder.getTargClass(value+1)));
                 if ( frac != null && Math.abs(frac-0.00) >= MyUtils.tol && Math.abs(frac-1.00) >= MyUtils.tol ) // if frac != 0 && frac != 1.00, i.e. the node is terminal but mixed
-                    sb.append(String.format("(Pr = %.2f%%)\n",frac*100));       // append the probability information as well
-                else sb.append("\n");
+                    sb.append(String.format("(Pr = %.2f%%)",frac*100));       // append the probability information as well
+                sb.append(String.format(" [%.2f%% of data]\n",100*(right-left+1.00)/DecisionTree.this.trainingData.length));
                 return ;
             }
             int i = 0;
@@ -74,12 +79,12 @@ public class DecisionTree implements Classifier {
 
         Node( Long signature, int left, int right, Node p ) {
             this.signature = signature;
-            this.left = left;
+            this.left = left; //left and right -- the range of the training dataset
             this.right = right;
-            this.p = p;
+            this.p = p; // pointer to the parent; needed only for breaking ties with class labels when we are unsure
             assert left <= right;
-            ++nodeCount;
-            if ( isHomogeneous(this) ) {
+            ++nodeCount; // for debugging purposes
+            if ( isHomogeneous(this) ) { //recursion should stop
                 isTerminalState = true ;
                 value = dataHolder.getOutcome(trainingData[left]);
             }
@@ -111,7 +116,8 @@ public class DecisionTree implements Classifier {
                         return x1<x2?-1:1;
                     }
                 });
-                child = new HashMap<>();
+                child = new HashMap<>(); // we sorted the left-to-right range according to the splitting attribute, so
+                                         // we go on assigning the children of the node the disjoint intervals
                 for ( int j,i = left; i <= right; i = j ) {
                     long kk = dataHolder.readAttribute(trainingData[i],idx);
                     for ( j = i; j <= right && dataHolder.readAttribute(trainingData[j],idx) == kk; ++j );
@@ -122,6 +128,9 @@ public class DecisionTree implements Classifier {
             }
         }
 
+        /* true if the range for which node x is responsible is already either all-0 or all-1
+        * in case it's mixed, also calculates the fraction of 0-cases
+        * */
         private boolean isHomogeneous( Node x ) {
             assert left <= right;
             Arrays.sort(trainingData, left, right + 1, new Comparator<Long>() {
@@ -145,10 +154,16 @@ public class DecisionTree implements Classifier {
             return false ;
         }
 
+        /*
+         * for all the available attributes in (i.e. set bits in "signature"), calculate information gain
+         * and choose the best splitting attribute;
+         * technically, we sort with respect to that variable (again, Java's anonymous classes are handy)
+         * and do a linear scan and analyze the possible split
+         */
         private int determineSplittingVarIdx() {
             int bestVarIdx = -1;
             double minEA = +oo;
-            for ( long u = signature; u > 0; u &= ~MyUtils.LSB(u) ) {
+            for ( long u = signature; u > 0; u &= ~MyUtils.LSB(u) ) { // check all the set bits in the "signature" -- all the active-aka-splittable attributes
                final int idx = MyUtils.who(MyUtils.LSB(u));
                assert ( idx != dataHolder.getTargVariable() ) ;
                assert (signature & MyUtils.BIT(idx)) != 0;
@@ -165,7 +180,8 @@ public class DecisionTree implements Classifier {
                    }
                });
                /*
-                * getInformationGain() functionality
+                * getInformationGain() functionality; as per the original article, maximizing information gain
+                * is minimizing the quantity we are computing below
                 */
                double EA = 0;
                int differentValues = 0;
@@ -177,7 +193,7 @@ public class DecisionTree implements Classifier {
                            ++zeros;
                    ones = (j-i)-zeros;
                    int segmentSize = ones+zeros;
-                   if ( (EA += (segmentSize+0.00)/(right-left+1)*MyUtils.I(zeros,ones)) >= minEA ) {
+                   if ( (EA += (segmentSize+0.00)/(right-left+1)*MyUtils.I(zeros,ones)) >= minEA ) { //if current EA is already no-better than the best-so-far, exit this loop
                        EA = +oo;
                        break ;
                    }

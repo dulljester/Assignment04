@@ -73,7 +73,7 @@ public class Bonus {
             out.printf("\n" + MyUtils.ANSI_GREEN + "[done]" + MyUtils.ANSI_RESET + " target attribute set to "+MyUtils.ASCII_BOLD+binaryAttributes.get(t)+MyUtils.ANSI_RESET+"\n\n");
             trainTheClassifier(percent);
             do {
-                out.printf("What is the name of the file containing your input data?\n");
+                out.printf("What is the name of the file containing your test data?\n");
                 filename = inp.next();
                 infile = new File(Paths.get("").toAbsolutePath().toString() + "/" + filename);
                 if ( !infile.exists() || infile.isDirectory() ) {
@@ -91,6 +91,13 @@ public class Bonus {
         }
     }
 
+    /*
+     * trains the classifier "c"; uses the iterative idea in the original article:
+     * withhold some data from the training data, train the model, see if it is 100% accurate
+     * on the rest of training data; if not, add those on which the classifier failed and
+     * build a new model; iterate
+     * "inc" stands for "incorrect"
+     */
     static void trainTheClassifier( final double percent ) {
         int i,k;
         final Set<Long> inc = new HashSet<>();
@@ -116,12 +123,15 @@ public class Bonus {
         } while ( !inc.isEmpty() );
     }
 
+    /*
+     * uses the derived model to classify the test data
+     */
     static void classify() throws Exception {
         br = new BufferedReader(new InputStreamReader(System.in));
         NumberFormat nf = NumberFormat.getInstance();
         nf.setMaximumFractionDigits(2);
         nf.setMinimumFractionDigits(2);
-        br.readLine(); // read the header
+        br.readLine(); // read the header; the relation must match that of training data
         Map<Outcomes,Integer> cnt = new HashMap<>();
         int []v = new int[2];
         for ( Outcomes o: Outcomes.values() )
@@ -136,7 +146,7 @@ public class Bonus {
             Outcomes o = Outcomes.which(v[0],v[1]); // TP, FN, TN, FP?
             cnt.put(o,cnt.get(o)+1);
         }
-        bw.write("Accuracy "+nf.format((cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/tuples));
+        bw.write("\nAccuracy "+nf.format((cnt.get(Outcomes.TP)+cnt.get(Outcomes.TN)+0.0)/tuples));
         bw.flush();
     }
 }

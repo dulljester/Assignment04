@@ -1,230 +1,29 @@
-if breast-quad == central, 
-    if age == 50-59, 
-        if tumor-siz == 0-4, 
-            if deg-malig == 2, 
-                then breast is left
-            else if deg-malig == 1, 
-                then breast is right
-        else if tumor-siz == 15-19, 
-            then breast is right
-        else if tumor-siz == 20-24, 
-            then breast is right
-    else if age == 30-39, 
-        then breast is right
-    else if age == 40-49, 
-        then breast is left
-    else if age == 60-69, 
-        if deg-malig == 3, 
-            then breast is right
-        else if deg-malig == 2, 
-            then breast is left
-        else if deg-malig == 1, 
-            then breast is left
-else if breast-quad == right_low, 
-    if tumor-siz == 10-14, 
-        then breast is right
-    else if tumor-siz == 25-29, 
-        if class == no-recurrence-events, 
-            if age == 40-49, 
-                if menopause == premeno, 
-                    if inv-nodes == 0-2, 
-                        if node-caps == no, 
-                            if deg-malig == 1, 
-                                if irradiat == no, 
-                                    then breast is right(Pr = 50.00%)
-        else if class == recurrence-events, 
-            then breast is left
-    else if tumor-siz == 0-4, 
-        then breast is right
-    else if tumor-siz == 20-24, 
-        then breast is left
-    else if tumor-siz == 30-34, 
-        then breast is left
-else if breast-quad == left_up, 
-    if inv-nodes == 12-14, 
-        then breast is left
-    else if inv-nodes == 6-8, 
-        if age == 40-49, 
-            then breast is right
-        else if age == 60-69, 
-            then breast is left
-    else if inv-nodes == 9-11, 
-        then breast is right
-    else if inv-nodes == 3-5, 
-        then breast is right
-    else if inv-nodes == 0-2, 
-        if tumor-siz == 35-39, 
-            then breast is right
-        else if tumor-siz == 40-44, 
-            if menopause == ge40, 
-                then breast is right
-            else if menopause == premeno, 
-                then breast is left
-        else if tumor-siz == 10-14, 
-            if deg-malig == 2, 
-                then breast is left
-            else if deg-malig == 1, 
-                if age == 50-59, 
-                    if class == no-recurrence-events, 
-                        if menopause == ge40, 
-                            if node-caps == no, 
-                                if irradiat == no, 
-                                    then breast is right(Pr = 50.00%)
-                else if age == 40-49, 
-                    then breast is right
-        else if tumor-siz == 50-54, 
-            then breast is right
-        else if tumor-siz == 25-29, 
-            if age == 50-59, 
-                then breast is right
-            else if age == 40-49, 
-                then breast is left
-            else if age == 60-69, 
-                if class == no-recurrence-events, 
-                    then breast is right
-                else if class == recurrence-events, 
-                    then breast is left
-        else if tumor-siz == 15-19, 
-            if class == no-recurrence-events, 
-                then breast is right
-            else if class == recurrence-events, 
-                if node-caps == yes, 
-                    then breast is right
-                else if node-caps == no, 
-                    then breast is left
-        else if tumor-siz == 20-24, 
-            if age == 50-59, 
-                then breast is left
-            else if age == 70-79, 
-                then breast is left
-            else if age == 40-49, 
-                then breast is right
-        else if tumor-siz == 30-34, 
-            if class == no-recurrence-events, 
-                then breast is left
-            else if class == recurrence-events, 
-                then breast is right
-else if breast-quad == right_up, 
-    if tumor-siz == 45-49, 
-        then breast is right
-    else if tumor-siz == 5-9, 
-        then breast is right
-    else if tumor-siz == 35-39, 
-        then breast is right
-    else if tumor-siz == 40-44, 
-        then breast is right
-    else if tumor-siz == 10-14, 
-        then breast is left
-    else if tumor-siz == 50-54, 
-        then breast is right
-    else if tumor-siz == 25-29, 
-        if age == 50-59, 
-            then breast is left
-        else if age == 40-49, 
-            then breast is left
-        else if age == 60-69, 
-            then breast is right
-    else if tumor-siz == 20-24, 
-        then breast is right
-    else if tumor-siz == 30-34, 
-        if inv-nodes == 3-5, 
-            then breast is left
-        else if inv-nodes == 0-2, 
-            if age == 50-59, 
-                if class == no-recurrence-events, 
-                    then breast is right
-                else if class == recurrence-events, 
-                    then breast is left
-            else if age == 40-49, 
-                then breast is right
-            else if age == 60-69, 
-                then breast is right
-else if breast-quad == left_low, 
-    if tumor-siz == 35-39, 
-        then breast is left
-    else if tumor-siz == 40-44, 
-        if age == 50-59, 
-            then breast is left
-        else if age == 40-49, 
-            if class == no-recurrence-events, 
-                then breast is right
-            else if class == recurrence-events, 
-                then breast is left
-        else if age == 60-69, 
-            then breast is right
-    else if tumor-siz == 10-14, 
-        then breast is left
-    else if tumor-siz == 50-54, 
-        if class == no-recurrence-events, 
-            then breast is left
-        else if class == recurrence-events, 
-            then breast is right
-    else if tumor-siz == 25-29, 
-        if menopause == ge40, 
-            then breast is left
-        else if menopause == premeno, 
-            if inv-nodes == 3-5, 
-                then breast is left
-            else if inv-nodes == 0-2, 
-                if age == 50-59, 
-                    if class == no-recurrence-events, 
-                        then breast is left
-                    else if class == recurrence-events, 
-                        then breast is right
-                else if age == 30-39, 
-                    then breast is right
-                else if age == 40-49, 
-                    if irradiat == yes, 
-                        then breast is left
-                    else if irradiat == no, 
-                        then breast is right
-    else if tumor-siz == 0-4, 
-        then breast is left
-    else if tumor-siz == 15-19, 
-        if age == 50-59, 
-            if class == no-recurrence-events, 
-                if menopause == lt40, 
-                    then breast is left
-                else if menopause == premeno, 
-                    if deg-malig == 2, 
-                        then breast is right
-                    else if deg-malig == 1, 
-                        then breast is left
-            else if class == recurrence-events, 
-                then breast is left
-        else if age == 70-79, 
-            then breast is left
-        else if age == 30-39, 
-            if inv-nodes == 6-8, 
-                then breast is left
-            else if inv-nodes == 0-2, 
-                then breast is right
-        else if age == 40-49, 
-            then breast is left
-        else if age == 60-69, 
-            then breast is left
-    else if tumor-siz == 20-24, 
-        if deg-malig == 3, 
-            if inv-nodes == 24-26, 
-                then breast is left
-            else if inv-nodes == 3-5, 
-                then breast is right
-            else if inv-nodes == 0-2, 
-                then breast is right
-        else if deg-malig == 2, 
-            then breast is left
-        else if deg-malig == 1, 
-            if age == 50-59, 
-                if menopause == lt40, 
-                    then breast is left
-                else if menopause == ge40, 
-                    then breast is right
-                else if menopause == premeno, 
-                    then breast is left
-            else if age == 40-49, 
-                then breast is right
-            else if age == 60-69, 
-                then breast is left
-    else if tumor-siz == 30-34, 
-        then breast is left
+if humidity == normal, 
+    if temperature == hot, 
+        then class is p [6.25% of data]
+    else if temperature == mild, 
+        then class is p [12.50% of data]
+    else if temperature == cool, 
+        if outlook == sunny, 
+            then class is p [6.25% of data]
+        else if outlook == overcast, 
+            if windy == true, 
+                then class is p(Pr = 50.00%) [12.50% of data]
+        else if outlook == rain, 
+            if windy == true, 
+                then class is p(Pr = 50.00%) [12.50% of data]
+else if humidity == high, 
+    if outlook == sunny, 
+        then class is n [18.75% of data]
+    else if outlook == overcast, 
+        if temperature == hot, 
+            if windy == false, 
+                then class is p(Pr = 50.00%) [12.50% of data]
+        else if temperature == mild, 
+            then class is p [6.25% of data]
+    else if outlook == rain, 
+        if windy == true, 
+            then class is n [6.25% of data]
+        else if windy == false, 
+            then class is p [6.25% of data]
 

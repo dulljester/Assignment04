@@ -24,6 +24,9 @@ public class DataHolder {
     private long []mask;
     private final static int SH = 22;
 
+    /*
+     * read attribute applied for the target variable
+     */
     public long getActualOutcome( Long t ) {
         return readAttribute(t,targetVar);
     }
@@ -31,6 +34,9 @@ public class DataHolder {
         return (getActualOutcome(t)>>offset[targetVar])==1?0:1;
     }
 
+    /*
+     * return a bitmask saying which columns are "active": relevant for Assignment 3 & 4
+     */
     public long getSignature( long t ) {
         long u = 0;
         for ( int i = 0; i < getN(); ++i )
@@ -74,6 +80,9 @@ public class DataHolder {
         return database.size();
     }
 
+    /*
+     * get the original name of the column "colId"
+     */
     public String getNameOfAttribute( int colId ) {
         return nameOfAttribute.get(colId);
     }
@@ -88,10 +97,16 @@ public class DataHolder {
     public double getSupport( Long t ) {
         return (getWeight(t)+0.00)/getDBSize();
     }
+    /*
+     * returns the original String value of the idx column
+     */
     public String getFieldValueName( Long t, int idx ) {
         assert im.get(idx).containsKey(Integer.valueOf((int)readAttribute(t,idx)>>offset[idx]));
         return im.get(idx).get(Integer.valueOf((int)readAttribute(t,idx)>>offset[idx]));
     }
+    /*
+     * given a transaction represented as long, "reads" its "idx" column
+     */
     public long readAttribute( Long t, int idx ) {
         if ( idx < 0 || idx >= getN() )
             throw new IllegalArgumentException("idx = "+idx);
@@ -114,6 +129,7 @@ public class DataHolder {
         }
     }
 
+    /* relevant for Assignment 3 only */
     private int getTopmostNonzero( Long t ) {
         int j;
         for ( j = N-1; j >= 0 && readAttribute(t,j) == 0; --j ) ;
@@ -121,18 +137,20 @@ public class DataHolder {
             throw new IllegalArgumentException();
         return j;
     }
-
+    /* relevant for Assignment 3 only */
     public long removeTopItem( Long t ) {
         int j = getTopmostNonzero(t);
         long res = t&~((MyUtils.MASK(width[j]))<<offset[j]);
         assert Long.bitCount(getSignature(res))+1 == Long.bitCount(getSignature(t)): t+ " and "+res+"\n";
         return res;
     }
+    /* relevant for Assignment 3 only */
     public long getTopItem( Long t ) {
         int j = getTopmostNonzero(t);
         return t&((MyUtils.MASK(width[j]))<<offset[j]);
     }
 
+    /* given a transaction, return its Long representation */
     private Long mapRowToLong( List<String> lst ) {
         long res = 0;
         assert lst.size() == getN();
@@ -142,12 +160,12 @@ public class DataHolder {
         assert res != 0;
         return res;
     }
+    /* thr above, overloaded for convenience */
     private Long mapRowToLong( String ... lst ) {
         long res = 0;
         assert lst.length == getN();
-        lst = lst;
         for ( int i = 0; i < lst.length; ++i )
-            res |= ((long)(m.get(i).get(lst[i])) << offset[i]);
+            res |= ((long)(m.get(i).get(lst[i].toLowerCase())) << offset[i]);
         assert res != 0;
         return res;
     }
@@ -159,6 +177,7 @@ public class DataHolder {
         return mapRowToLong(s.replaceFirst("^\\s+","").split("\\s+"));
     }
 
+    /* read all the data and encode the transactions therein as Longs */
     private void mapDataToLong() {
         N = getN();
         width = new int[N];
@@ -190,6 +209,7 @@ public class DataHolder {
         }
     }
 
+    /* replace the "?" with the most frequently occurring value in the corresponding column */
     private void removeNoise( Map<Integer,Map<String,Integer>> counts ) {
         for ( int j = 0; j < getN(); ++j ) {
             String majorityElement = MyUtils.getMajorityElement(counts.get(j));
@@ -199,6 +219,7 @@ public class DataHolder {
         }
     }
 
+    /* the primary loading of DB into memory; encoding the values with integers, populating the maps, etc */
     private void readData( BufferedReader br ) throws Exception {
         assert br != null ;
         String s = br.readLine(),t;

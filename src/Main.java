@@ -11,6 +11,7 @@ public class Main {
     private static DataHolder dataHolder;
     private static File infile = null, outfile = null;
 
+    // True Positive, False Positive, etc?
     enum Outcomes {
         TP(0,0), FP(0,1), FN(1,0), TN(1,1);
         final int byClassifier, trueValue;
@@ -76,6 +77,8 @@ public class Main {
         }
     }
 
+    // trains the classifier given the "percent" -- percentage of the data
+    // to train on; see comments below
     static void trainTheClassifier( final double percent ) {
         int i,k;
         final Set<Long> inc = new HashSet<>();
@@ -84,7 +87,11 @@ public class Main {
         //int n = (int)(dataHolder.numUniqTuples()*percent);
         int n = dataHolder.numUniqTuples();
         Long []t = dataHolder.getUniqTuples(n), trainingData;
-        c = new DecisionTree();
+        c = new DecisionTree(); // coding to interface
+        // the do-while loop was originally for withholding
+        // a part of training data and perform iterations till convergence,
+        // as was explained in the original paper
+        // Now we just do one iteration with all the data
         //k = n/3;
         k = n;
         do {
@@ -103,6 +110,8 @@ public class Main {
         } while ( !inc.isEmpty() );
     }
 
+    // used for testing the classifier -- counting accuracy -- on the
+    // data withheld; now relevant only for the bonus part
     static void classify( final double perc ) {
         int n = dataHolder.numUniqTuples();
         int [][]v = new int[2][n];
