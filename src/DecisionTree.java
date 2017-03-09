@@ -29,8 +29,10 @@ public class DecisionTree implements Classifier {
         return getPrediction(root,t);
     }
 
-    // overloaded, internal getPrediction that, given a transaction "t" and a node "x" in the decision tree,
-    // returns a class that would result in descending the tree starting at "x" with transaction "t"
+    /**
+    * overloaded, internal getPrediction that, given a transaction <var>t</var> and a node <var>x</var> in the decision tree,
+    * returns a class that would result in descending the tree starting at <var>x</var> with transaction<var>t</var>
+    */
     private int getPrediction( Node x, Long t ) {
        assert x != null;
        if ( x.isTerminalState ) {
@@ -54,9 +56,11 @@ public class DecisionTree implements Classifier {
         Map<Long,Node> child = null;
         Double frac = null;
 
-        //recursively print the node and the subtree rooted at it to a StringBuilder
-        // "usefulness measure" of the rule: each terminal node shows the percentage
-        // of the training data that falls into this rule
+        /**
+         * recursively print the node and the subtree rooted at it to a StringBuilder <var>sb</var>
+         * "usefulness measure" of the rule: each terminal node shows the percentage
+         * of the training data that falls into this rule
+         */
         void printMyself( StringBuilder sb, int offset ) {
             if ( isTerminalState ) {
                 for ( int k = offset; k-->0; sb.append(" ") );
@@ -77,6 +81,13 @@ public class DecisionTree implements Classifier {
             }
         }
 
+        /**
+         *
+         * @param signature bitmask storing "active" (eligible for splitting-by) attributes
+         * @param left left index of the segment allotted to the node
+         * @param right right index of the segment allotted to the node
+         * @param p parent of the current node
+         */
         Node( Long signature, int left, int right, Node p ) {
             this.signature = signature;
             this.left = left; //left and right -- the range of the training dataset
@@ -121,7 +132,7 @@ public class DecisionTree implements Classifier {
                 for ( int j,i = left; i <= right; i = j ) {
                     long kk = dataHolder.readAttribute(trainingData[i],idx);
                     for ( j = i; j <= right && dataHolder.readAttribute(trainingData[j],idx) == kk; ++j );
-                    child.put(kk,new Node(signature&~MyUtils.BIT(idx),i,j-1,this));
+                    child.put(kk,new Node(signature&~MyUtils.BIT(idx),i,j-1,this)); // switch off the bit "idx"
                 }
                 splittingVarIdx = idx;
                 assert splittingVarIdx >= 0;
@@ -154,11 +165,11 @@ public class DecisionTree implements Classifier {
             return false ;
         }
 
-        /*
+        /**
          * for all the available attributes in (i.e. set bits in "signature"), calculate information gain
          * and choose the best splitting attribute;
-         * technically, we sort with respect to that variable (again, Java's anonymous classes are handy)
-         * and do a linear scan and analyze the possible split
+         * technically, we sort with respect to that variable (again, Java's anonymous classes are handy),
+         * do a linear scan, and analyze the possible split
          */
         private int determineSplittingVarIdx() {
             int bestVarIdx = -1;
@@ -179,7 +190,7 @@ public class DecisionTree implements Classifier {
                        return x1<x2?-1:1;
                    }
                });
-               /*
+               /**
                 * getInformationGain() functionality; as per the original article, maximizing information gain
                 * is minimizing the quantity we are computing below
                 */

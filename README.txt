@@ -17,6 +17,7 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
         * getInformationGain(): determineSplittingVarIdx() method in DecisionTree class
         * doSplit(): determineSplittingVarIdx() and Node's constructor
         * printtree(): DecisionTree class has an overridden toString() method that calls a recursive "printMyself()" method of the Node class
+        * usefulness measure of the rule == at each terminal node we report the fraction of the training data falling under this rule
 
 --Specify limitations of the program( if any)
 
@@ -88,4 +89,5 @@ GitHub page of the project: https://github.com/dulljester/Assignment04
     --Brief Description about Bonus part
         Training(data1), Test(data2) --> accuracy 0.86
         Training(data2), Test(data1) --> accuracy 0.67
-        It is somewhat counterintuitive that with more larger training data we get worse accuracy;
+        It is somewhat counterintuitive that with larger training data we achieve worse accuracy on a smaller set.
+        I have no explanation for this.

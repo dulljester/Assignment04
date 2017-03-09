@@ -1,29 +1,13 @@
-if humidity == normal, 
-    if temperature == hot, 
-        then class is p [6.25% of data]
-    else if temperature == mild, 
-        then class is p [12.50% of data]
-    else if temperature == cool, 
-        if outlook == sunny, 
-            then class is p [6.25% of data]
-        else if outlook == overcast, 
-            if windy == true, 
-                then class is p(Pr = 50.00%) [12.50% of data]
-        else if outlook == rain, 
-            if windy == true, 
-                then class is p(Pr = 50.00%) [12.50% of data]
-else if humidity == high, 
-    if outlook == sunny, 
-        then class is n [18.75% of data]
-    else if outlook == overcast, 
-        if temperature == hot, 
-            if windy == false, 
-                then class is p(Pr = 50.00%) [12.50% of data]
-        else if temperature == mild, 
-            then class is p [6.25% of data]
-    else if outlook == rain, 
-        if windy == true, 
-            then class is n [6.25% of data]
-        else if windy == false, 
-            then class is p [6.25% of data]
+if outlook == sunny, 
+    if humidity == normal, 
+        then playtennis is p [14.29% of data]
+    else if humidity == high, 
+        then playtennis is n [21.43% of data]
+else if outlook == overcast, 
+    then playtennis is p [28.57% of data]
+else if outlook == rain, 
+    if windy == true, 
+        then playtennis is n [14.29% of data]
+    else if windy == false, 
+        then playtennis is p [21.43% of data]
 
